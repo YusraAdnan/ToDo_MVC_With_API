@@ -1,0 +1,60 @@
+﻿@model List<TaskItem>
+
+<h2>My Task List</h2>
+
+<!--We use <form> when we want to add, submit, post etc 
+    (do something other than looking). 
+    If you want to show data only we don't use <form> -->
+
+@if (ViewData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["DeleteSuccess"] != null)
+{
+    <div class="alert alert-danger">@TempData["DeleteSuccess"]</div>
+}
+
+
+
+<form asp-action="AddTask" method="post" class="d-flex">
+
+    <input type="text" name="title" class="form-control me-2" placeholder="Enter a new task..." />
+    <button type="submit" class="btn btn-success"><i class="bi bi-clipboard-plus-fill"></i></button>
+
+</form>
+
+
+<p class="mt-2" style="color:orange">You have @ViewBag.PendingCount tasks pending</p>
+
+<div class="card p-2 mt-3">
+    <ol class="list-group list-group-numbered mt-3">
+        @foreach (var task in Model)
+        {
+            <li class="list-group-item">
+                
+                @task.Title
+
+                <div class="mt-2">
+                @if (!task.IsComplete)
+                {
+                    <form asp-action="ToggleComplete" asp-route-id="@task.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-secondary">[Mark Complete]</button>
+                    </form>
+                }
+                else
+                {
+                    <span style="color:forestgreen">(Done)</span>
+                }
+                    <form asp-action="DeleteTask" asp-route-id="@task.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+                       
+                    </form>
+                </div>
+
+            </li>
+        }
+    </ol>
+</div>
+
