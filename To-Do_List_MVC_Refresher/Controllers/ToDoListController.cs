@@ -3,23 +3,25 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using To_Do_List_MVC_Refresher.Controllers;
 using To_Do_List_MVC_Refresher.Models;
 
 namespace To_Do_List_MVC_Refresher.Controllers
 {
     public class ToDoListController : Controller
     {
+
         private IHttpClientFactory _client;
 
         public ToDoListController(IHttpClientFactory client)
         {
-           _client = client;
+            _client = client;
         }
 
-        //async method (it might long for the connection to establish to the db)
+        //async because it needs to wait for the API's response over the network
         public async Task<IActionResult> ToDoListHomePage() //'Task' comes from the async method type (TB to async and sync lesson)
         {
-            //Http client allows you to send a requesto to a url
+            //Http client allows you to send a reques to to a url
             HttpClient client = _client.CreateClient(); //creates usable instance of a client
             client.BaseAddress = new Uri("https://localhost:7008"); //address at which your API is running 
             var response = await client.GetAsync("api/Task/getAll"); //Using the endpoint that gets the tasks you query at that address (this is the message object)
@@ -31,14 +33,22 @@ namespace To_Do_List_MVC_Refresher.Controllers
             return View(tasks);
         }
 
+        //Consumer of the create endpoint
         [HttpPost]
         public async Task<IActionResult> AddTask(string title)
         {
             HttpClient client = _client.CreateClient(); //creates usable instance of a client
             client.BaseAddress = new Uri("https://localhost:7008");
+
+            //create the object with the user enterd title and the status
             var newTask = new TaskItem { Title = title, IsComplete = false };
+
+            //serialize the c# content 
             var content = new StringContent(JsonSerializer.Serialize(newTask), Encoding.UTF8, "application/json");
-            await client.PostAsync("api/Task/create", content);
+
+            //sending the serialized content using the endpoint for create
+             await client.PostAsync("api/Task/create", content);
+
             return RedirectToAction("ToDoListHomePage");
         }
 
@@ -50,7 +60,6 @@ namespace To_Do_List_MVC_Refresher.Controllers
             await client.DeleteAsync($"api/Task/delete/{id}");
             return RedirectToAction("ToDoListHomePage");
         }
-        /* BREAK THE CODE */
 
         [HttpPost]
         public async Task<IActionResult> ToggleComplete(Guid id)
@@ -60,7 +69,7 @@ namespace To_Do_List_MVC_Refresher.Controllers
 
             //get a specific task using the endpoint that gets a specific task
             var getResponse = await client.GetAsync($"api/Task/get/{id}");//form of bytes
-            
+
             //form of json 
             var json = await getResponse.Content.ReadAsStringAsync();
 
@@ -83,3 +92,13 @@ namespace To_Do_List_MVC_Refresher.Controllers
         }
     }
 }
+
+//private readonly HttpClient client;
+
+//public ToDoListController()
+//{
+//    client = new HttpClient
+//    {
+//        BaseAddress = new Uri("https://localhost:7008")
+//    };
+//}
